@@ -72,8 +72,7 @@ class WebcamImageSource : public virtual ImageSource {
         cv::resize(rawImg, resizedImg, cv::Size(320, 180));
         cv::flip(resizedImg, resizedAndFlippedImg, 1);
         cv::cvtColor(resizedAndFlippedImg, resizedAndFlippedGrayscaleImage, CV_BGR2GRAY);
-        img = resizedAndFlippedGrayscaleImage.clone();
-
+        resizedAndFlippedGrayscaleImage.copyTo(img);
     }
 };
 
@@ -196,14 +195,20 @@ public:
 
     void render() {
         imgSource->getImage(captured);
-        if (!prevCaptured.data) prevCaptured = captured;
-        cv::Point2f actualFlow = calculateFlow();
-        virtualMouseDeltaX += actualFlow.x * 0.002;
-        virtualMouseDeltaY += actualFlow.y * 0.002;
-
+        if (!prevCaptured.data) prevCaptured = captured.clone();
+        if (!mainAreaCalculator.isInitialized() || !clickAreaCalculator.isInitialized()) {
+            clickAreaWidth = (int) (captured.cols * clickAreaWidthRatio);
+            mainAreaCalculator.init(captured, prevCaptured, cv::Range(clickAreaWidth, captured.cols), cv::Range::all());
+            clickAreaCalculator.init(captured, prevCaptured, cv::Range(0, clickAreaWidth), cv::Range::all(), 2000.0);
+        }
+        mainAreaCalculator.calculateFlow();
+        clickAreaCalculator.calculateFlow();
+        virtualMouseDeltaX += mainAreaCalculator.getActualFlow().x * 0.002;
+        virtualMouseDeltaY += mainAreaCalculator.getActualFlow().y * 0.002;
+        drawFlow();
         cv::imshow(ImageProcessWindowName, imageToShow);
         cv::waitKey(1);
-        prevCaptured = captured;
+        captured.copyTo(prevCaptured);
     }
 
     void renderString(const char *message) {
@@ -215,61 +220,68 @@ public:
 
 private:
     const char *ImageProcessWindowName = "ImageProcess";
-    static const int memoryLength = 3;
-    cv::Scalar sumFlow[memoryLength];
-    int sumFlowIndex = 0;
+    float clickAreaWidthRatio = 0.3f;
+    int clickAreaWidth = 0;
     cv::Mat imageToShow;
-    const cv::Scalar upColor = cv::Scalar(0,0,255);
-    const cv::Scalar downColor = cv::Scalar(255,0,0);
-    const cv::Scalar rightColor = cv::Scalar(0,255,255);
-    const cv::Scalar leftColor = cv::Scalar(255,255,255);
+    FlowCalculator mainAreaCalculator, clickAreaCalculator;
 
-    cv::Point2f calculateFlow() {
-        cv::Mat flowVectors, flowVectors2;
-        cv::Point2f accFlow(0, 0);
-        cv::calcOpticalFlowFarneback(prevCaptured, captured, flowVectors, 0.5, 3, 15, 3, 5, 1.2, 0);
-        cv::threshold(flowVectors, flowVectors2, 1.0, 0, cv::THRESH_TOZERO);
-        cv::threshold(flowVectors, flowVectors, -1.0, 0, cv::THRESH_TOZERO_INV);
-        flowVectors = flowVectors + flowVectors2;
 
-        sumFlow[sumFlowIndex] = cv::sum(flowVectors);
-        sumFlow[sumFlowIndex] /= 5000.0;
-        sumFlowIndex = (sumFlowIndex + 1) % memoryLength;
-        for (int i = 0; i < memoryLength; i++) {
-            accFlow.x += sumFlow[i][0];
-            accFlow.y += sumFlow[i][1];
-        }
+    const cv::Scalar upColor = cv::Scalar(0, 0, 255);
+    const cv::Scalar downColor = cv::Scalar(255, 0, 0);
+    const cv::Scalar rightColor = cv::Scalar(0, 255, 255);
+    const cv::Scalar leftColor = cv::Scalar(255, 255, 255);
 
-        if (fabs(accFlow.x) < 20.0) accFlow.x = 0;
-        if (fabs(accFlow.y) < 20.0) accFlow.y = 0;
-
-        if (!imageToShow.data){
+    void drawFlow() {
+        if (!imageToShow.data) {
             imageToShow = cv::Mat(prevCaptured.size(), CV_8UC3);
         }
         cv::cvtColor(prevCaptured, imageToShow, CV_GRAY2BGR);
 
-        drawFlowMainArrow(accFlow);
+        drawMainAreaFlow();
 
+        drawClickAreaFlow();
+
+        drawSeparatorLine();
+    }
+
+    void drawMainAreaFlow() {
+        static const cv::Point2f mainAreaCenter = cv::Point2f(clickAreaWidth + (captured.cols - clickAreaWidth) / 2, captured.rows / 2);
+        static const cv::Point2f mainAreaLeftTopPoint = cv::Point2f(clickAreaWidth, 0);
+        drawBigFlowArrow(mainAreaCalculator.getActualFlow(), mainAreaCenter);
+        drawSmallFlowArrows(mainAreaCalculator.getFlowVectors(), mainAreaLeftTopPoint);
+    }
+
+    void drawSeparatorLine() {
+        cv::line(imageToShow, cv::Point2f(clickAreaWidth, 0), cv::Point2f(clickAreaWidth, imageToShow.rows), cv::Scalar(0, 255, 0), 2,
+                 CV_AA,
+                 0);
+    }
+
+    void drawClickAreaFlow() {
+        static const cv::Point2f clickAreaCenter = cv::Point2f(clickAreaWidth / 2, captured.rows / 2);
+        static const cv::Point2f clickAreaLeftTopPoint = cv::Point2f(0, 0);
+        drawBigFlowArrow(clickAreaCalculator.getActualFlow(), clickAreaCenter);
+        drawSmallFlowArrows(clickAreaCalculator.getFlowVectors(), clickAreaLeftTopPoint);
+    }
+
+    void drawBigFlowArrow(const cv::Point2f &accFlow, const cv::Point2f &position) {
+        cv::Scalar drawColor = calculateColor(accFlow);
+        const cv::Point2f end = position + accFlow;
+        cv::arrowedLine(imageToShow, position, end, drawColor, 3, CV_AA, 0, 0.4);
+    }
+
+    void drawSmallFlowArrows(const cv::Mat &flowVectors, const cv::Point2f &leftTopPosition) {
         const int step = 20;
         cv::Scalar arrowColor(0, 0, 0);
         for (int i = 0; i < flowVectors.rows; i += step) {
             for (int j = 0; j < flowVectors.cols; j += step) {
                 const cv::Point2f &fxy = flowVectors.at<cv::Point2f>(i, j);
                 arrowColor = calculateColor(fxy);
-                cv::arrowedLine(imageToShow, cv::Point(j, i), cv::Point(j + fxy.x, i + fxy.y), arrowColor, 1, 8, 0, 0.4);
+                cv::Point2f arrowStart = cv::Point2f(j, i) + leftTopPosition;
+                cv::Point2f arrowEnd = arrowStart + fxy;
+                cv::arrowedLine(imageToShow, arrowStart, arrowEnd, arrowColor, 1, CV_AA, 0, 0.4);
             }
         }
-
-        return accFlow;
-    }
-
-    void drawFlowMainArrow(const cv::Point2f& accFlow) {
-
-        cv::Scalar drawColor = calculateColor(accFlow);
-
-        cv::arrowedLine(imageToShow, cv::Point(imageToShow.cols / 2, imageToShow.rows / 2),
-                 cv::Point(imageToShow.cols / 2 + accFlow.x, imageToShow.rows / 2 + accFlow.y), drawColor, 3, CV_AA, 0, 0.4);
-
     }
 
     cv::Scalar calculateColor(const cv::Point2f &direction) {
