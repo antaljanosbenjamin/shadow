@@ -522,9 +522,11 @@ void display(void) {
     static float lastTime = 0;
     gameController.captureTimeSinceInitCompleted();
 
-    if (gameController.userControlOn && (gameController.timeSinceInitCompleted - lastTime > 0.05)) {
-        lastTime = gameController.timeSinceInitCompleted;
-        imageProcessor.render();
+    if (gameController.userControlOn) {
+        if (gameController.timeSinceInitCompleted - lastTime > 0.05) {
+            lastTime = gameController.timeSinceInitCompleted;
+            imageProcessor.render();
+        }
     }
     else {
         char msg[256];
@@ -614,7 +616,7 @@ void keyboard(unsigned char key, int x, int y) {
         case 13:
             //if ((gameController.timeSinceInitCompleted >= gameController.timeIntro) && (gameController.timeGameStart < 0.0))
         {
-            gameController.timeGameStart = gameController.timeSinceInitCompleted;
+            gameController.timeGameStart = gameController.timeSinceInitCompleted - 1;
         }
             break;
         case 'w':
