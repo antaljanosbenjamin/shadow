@@ -251,7 +251,7 @@ private:
         drawFlowMainArrow(accFlow);
 
         const int step = 20;
-        cv::Scalar arrowColor(0,0,0);
+        cv::Scalar arrowColor(0, 0, 0);
         for (int i = 0; i < flowVectors.rows; i += step) {
             for (int j = 0; j < flowVectors.cols; j += step) {
                 const cv::Point2f &fxy = flowVectors.at<cv::Point2f>(i, j);
@@ -272,11 +272,11 @@ private:
 
     }
 
-    cv::Scalar calculateColor(const cv::Point2f& direction){
-        cv::Scalar calculatedColor(0,0,0);
+    cv::Scalar calculateColor(const cv::Point2f &direction) {
+        cv::Scalar calculatedColor(0, 0, 0);
         if ((fabs(direction.x) < 0.00001) && (fabs(direction.y) < 0.00001))
             return calculatedColor;
-        cv::Point2f normalized = direction * (1/cv::norm(direction));
+        cv::Point2f normalized = direction * (1 / cv::norm(direction));
 
         if (normalized.x > 0)
             calculatedColor += normalized.x * rightColor;
