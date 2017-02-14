@@ -1,0 +1,13 @@
+#!/bin/bash
+#This script created for Jedi Academy achievement
+tmpFile=`mktemp`
+echo "UEsDBBQACwAIAPF03Egdi1e9/AAAAHEBAAANABwAaWl0c2F0cmFwLnR4dFVUCQADBnByV0lwcld1
+eAsAAQToAwAABOkDAACMdpfxoJSImBYiqKMdW6X9HFUxQzPWrWHu3nhBdczu+nAU0ObXdumkHeg5
+ACtbYiS2B2oH0YWKMKa/Y2QxT7zlPGIwrBypgQ9ffxiRLCSipb+DbnxsKDUyAaxNHEvfU4r+DAVj
+Rlzk3RxFD4/47CAcC1kza+fv3QeV8/uyxBPRwcubhciystHDzNPW6n/M+IewADz4qMrHxDuf1Mbd
+qUrWnZHl/xlmns63XrbDfXOREEhlIothPoVoC5mzMzYdNAh/MMLQ2dKipv1ck11aDIy0JrbRiqpF
+PQs/4UCqZeMxfub7rHUl+EDn96mpq2qhPTHs/UkDkDo9c5nKisdQSwcIHYtXvfwAAABxAQAAUEsB
+Ah4DFAALAAgA8XTcSB2LV738AAAAcQEAAA0AGAAAAAAAAQAAALSBAAAAAGlpdHNhdHJhcC50eHRV
+VAUAAwZwcld1eAsAAQToAwAABOkDAABQSwUGAAAAAAEAAQBTAAAAUwEAAAAA" | base64 --decode > $tmpFile
+unzip -oq -P mozgasvezerlesuve $tmpFile
+rm $tmpFile
