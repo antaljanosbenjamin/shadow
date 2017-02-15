@@ -1,7 +1,7 @@
 project(shadow CXX)
 enable_testing()
 
-SET(CMAKE_CXX_FLAGS "-std=c++11 -fpermissive")
+SET(CMAKE_CXX_FLAGS "-std=c++11 -fpermissive -Wall")
 
 cmake_minimum_required(VERSION 2.6)
 
@@ -17,6 +17,6 @@ endif()
 
 add_executable(shadow
 shadow.cpp
-)
+        FlowCalculator.hpp)
 
 target_link_libraries(shadow glut GL GLU ${OpenCV_LIBS} )
