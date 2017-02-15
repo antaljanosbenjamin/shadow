@@ -64,7 +64,7 @@ class WebcamImageSource : public virtual ImageSource {
     bool init(int intParam = 0, const char *strParam = NULL) {
         if (!cap.open(0))
             throw "Can't open camera!";
-
+        return 0;
     }
 
     bool getImage(cv::Mat &img) {
@@ -73,6 +73,8 @@ class WebcamImageSource : public virtual ImageSource {
         cv::flip(resizedImg, resizedAndFlippedImg, 1);
         cv::cvtColor(resizedAndFlippedImg, resizedAndFlippedGrayscaleImage, CV_BGR2GRAY);
         resizedAndFlippedGrayscaleImage.copyTo(img);
+
+        return true;
     }
 };
 
@@ -80,7 +82,7 @@ class WebcamImageSource : public virtual ImageSource {
 class GameControl {
 public:
     GameControl()
-            : userControlOn(false), timeOfInitCompleted(0.0), timeSinceInitCompleted(0.0), timeGameStart(-1.0) {}
+            : userControlOn(false), timeSinceInitCompleted(0.0f), timeGameStart(-1.0f), timeOfInitCompleted(0.0f) {}
 
     void captureTimeSinceInitCompleted() {
         timeSinceInitCompleted = glutGet(GLUT_ELAPSED_TIME) / 1000.0 - timeOfInitCompleted + timeSkip;
@@ -322,7 +324,7 @@ private:
     Mesh spaceShip;
 
     void transform() {
-        float t = gameController.timeSinceInitCompleted < gameController.timeIntro ? t = 0 : t = gameController.timeSinceInitCompleted -
+        float t = ( gameController.timeSinceInitCompleted < gameController.timeIntro ) ? 0 : gameController.timeSinceInitCompleted -
                                                                                                  gameController.timeIntro;
 
         glTranslatef(-0.47, -2.6, 2.0);
