@@ -17,6 +17,6 @@ endif()
 
 add_executable(shadow
 shadow.cpp
-        FlowCalculator.hpp ImageSource.hpp ImageProcessor.hpp GameElement.hpp)
+        FlowCalculator.hpp ImageSource.hpp ImageProcessor.hpp GameElement.hpp MTLReader.hpp)
 
 target_link_libraries(shadow glut GL GLU ${OpenCV_LIBS} )

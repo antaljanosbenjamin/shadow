@@ -8,6 +8,7 @@
 #include "utility2d3d.hpp"
 #include "GameElement.hpp"
 #include "ImageProcessor.hpp"
+#include "MTLReader.hpp"
 
 using namespace std;
 
@@ -391,6 +392,12 @@ int main(int argc, char **argv) {
     catch (const char *filename) {
         printf("Can't find %s.\n", filename);
     }
-
+    /*try {
+        auto materials = loadMaterialsFromFile("media/xwing/x-wing.mtl");
+        for(auto material : materials)
+            std::cout << material << std::endl;
+    } catch (const char *fileName){
+        std::cout << "Can't find " << fileName << std::endl;
+    }*/
     return 0;
 }
