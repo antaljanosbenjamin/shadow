@@ -9,6 +9,7 @@
 #include "ImageSource.hpp"
 #include "GameElement.hpp"
 #include "FlowCalculator.hpp"
+#include "EyeDetector.hpp"
 
 #include <opencv2/opencv.hpp>
 
@@ -23,6 +24,7 @@ public:
 
     void init() {
         cv::namedWindow(ImageProcessWindowName, CV_WINDOW_AUTOSIZE);
+        cv::namedWindow("Preprocessed image", CV_WINDOW_AUTOSIZE);
         renderString("Loading, please waiit...");
         imgSource = new WebcamImageSource();
         imgSource->init(20, "media/img%05d.png");
@@ -40,8 +42,17 @@ public:
         clickAreaCalculator.calculateFlow();
         virtualMouseDeltaX += mainAreaCalculator.getActualFlow().x * 0.002;
         virtualMouseDeltaY += mainAreaCalculator.getActualFlow().y * 0.002;
+        prepareImageToDraw();
         drawFlow();
+        EyeDetectResult eyeDetectResult = EyeDetector::detectEyes(captured);
+        cv::rectangle(imageToShow, eyeDetectResult.leftEye, cv::Point(eyeDetectResult.leftEye.x + EyeDetector::eyeTemplate.cols,
+                                                                      eyeDetectResult.leftEye.y + EyeDetector::eyeTemplate.rows),
+                      cv::Scalar::all(0), 2, 8, 0);
+        cv::rectangle(imageToShow, eyeDetectResult.rightEye, cv::Point(eyeDetectResult.rightEye.x + EyeDetector::eyeTemplate.cols,
+                                                                       eyeDetectResult.rightEye.y + EyeDetector::eyeTemplate.cols),
+                      cv::Scalar::all(0), 2, 8, 0);
         cv::imshow(ImageProcessWindowName, imageToShow);
+        cv::imshow("Preprocessed image", EyeDetector::preprocessedImage);
         cv::waitKey(1);
         captured.copyTo(prevCaptured);
     }
@@ -66,11 +77,14 @@ private:
     const cv::Scalar rightColor = cv::Scalar(0, 255, 255);
     const cv::Scalar leftColor = cv::Scalar(255, 255, 255);
 
-    void drawFlow() {
+    void prepareImageToDraw(){
         if (!imageToShow.data) {
             imageToShow = cv::Mat(prevCaptured.size(), CV_8UC3);
         }
         cv::cvtColor(prevCaptured, imageToShow, CV_GRAY2BGR);
+    }
+
+    void drawFlow() {
 
         drawMainAreaFlow();
 
