@@ -15,7 +15,7 @@
 
 class ImageProcessor : public GameElement {
 public:
-    float virtualMouseDeltaX = 0.0f, virtualMouseDeltaY = 0.0f;
+    float virtualMouseDeltaX = 0.0f, virtualMouseDeltaY = 0.0f, virtualMouseDeltaZ = 0.0f;
     cv::Mat captured, prevCaptured, auxImage;
     ImageSource *imgSource;
 
