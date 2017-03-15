@@ -17,6 +17,7 @@ public:
     float virtualMouseDeltaX = 0.0f, virtualMouseDeltaY = 0.0f, virtualMouseDeltaZ = 0.0f;
     cv::Mat captured, prevCaptured, auxImage;
     ImageSource *imgSource;
+    int clickCounter = 0;
 
     ImageProcessor()
             : auxImage(180, 320, CV_8UC1) {}
@@ -41,6 +42,7 @@ public:
         virtualMouseDeltaX += mainAreaCalculator.getActualFlow().x * 0.002;
         virtualMouseDeltaY += mainAreaCalculator.getActualFlow().y * 0.002;
         drawFlow();
+        drawCursor();
         cv::imshow(ImageProcessWindowName, imageToShow);
         cv::waitKey(1);
         captured.copyTo(prevCaptured);
@@ -136,6 +138,20 @@ private:
             calculatedColor -= normalized.y * upColor;
 
         return calculatedColor;
+    }
+
+    void drawCursor() {
+        static const cv::Point2f center = cv::Point2f(imageToShow.cols / 2, imageToShow.rows / 2);
+        cv::Scalar clickColor = cv::Scalar(0, 0, 0);
+        if (clickAreaCalculator.thereWasClick()) {
+            clickCounter = 5;
+        }
+        if (clickCounter > 0){;
+            clickColor = cv::Scalar(0, 255, 0);
+            clickCounter--;
+        }
+        const cv::Point2f end = center + cv::Point2f(0, -15);
+        cv::arrowedLine(imageToShow, center, end, clickColor, 4, CV_AA, 0, 0.6);
     }
 };
 

@@ -30,6 +30,7 @@ public:
     }
 
     cv::Point2f calculateFlow() {
+        previousFlow = actualFlow;
         cv::Mat ownPrevCaptured(prevCaptured, verticalRange, horizontalRange);
         cv::Mat ownCaptured(captured, verticalRange, horizontalRange);
         cv::Mat flowVectors2;
@@ -67,6 +68,10 @@ public:
         return initialized;
     }
 
+    bool thereWasClick() const {
+        return (previousFlow.y <= 0) && (actualFlow.y > 0);
+    }
+
 private:
     cv::Range horizontalRange, verticalRange;
     cv::Mat prevCaptured, captured;
@@ -75,6 +80,7 @@ private:
     float magicConstant;
     int sumFlowIndex = 0;
     cv::Point2f actualFlow = cv::Point2f(0, 0);
+    cv::Point2f previousFlow = cv::Point2f(0, 0);
     cv::Mat flowVectors;
     bool initialized;
 };

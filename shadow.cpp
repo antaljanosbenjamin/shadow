@@ -31,10 +31,11 @@ public:
     float timeGameStart;
     const float timeIntro = 27.0;
     const float timeOfTransitionFromIntroEndToUserControl = 1.0;
+    const float crawlTime = 32.0;
+    float timeSkip = 0.0;
 
 private:
     float timeOfInitCompleted;
-    const float timeSkip = 0.0;
 } gameController;
 
 ImageProcessor imageProcessor;
@@ -59,14 +60,6 @@ private:
     void transform() {
         float t = ( gameController.timeSinceInitCompleted < gameController.timeIntro ) ? 0 : gameController.timeSinceInitCompleted -
                                                                                              gameController.timeIntro;
-        glPushMatrix();
-        glTranslatef(-1.75,0,0);
-        float matKd[] = {1,0,0,1};
-        glMaterialfv(GL_FRONT, GL_DIFFUSE, matKd);
-        glMaterialfv(GL_FRONT, GL_AMBIENT, matKd);
-        glMaterialfv(GL_FRONT, GL_SPECULAR, matKd);
-        glutSolidCube(0.5);
-        glPopMatrix();
         glTranslatef(-0.47 + 1.75 * 4, 3.6, 2.0);
 
         float percent;
@@ -91,12 +84,9 @@ private:
 
         percent = 0.0;
 
-        glTranslatef((1.0 - percent) * 0.47, (1.0 - percent) * 0.0, (1.0 - percent) * -2.0);
-        glRotatef(percent * fmod(t * 13, 360), 1, 0, 0);
-        glRotatef(percent * fmod(t * 29, 360), 0, 0, 1);
-        glTranslatef(percent * 0.5 * sin(M_PI / 2.0 * min(t / 10.0, 1.0)), 0, 0);
+        glTranslatef((1.0 - percent) * 0.47, (1.0 - percent) * 1.0, (1.0 - percent) * -2.0);
 
-        glRotatef(percent * 90, 0, 1, 0);
+        //glRotatef(percent * 90, 0, 1, 0);
         glRotatef(-180, 0, 0, 1);
         glRotatef(90, 1, 0, 0);
         glScalef(0.5, 0.5, 0.5);
@@ -161,7 +151,6 @@ public:
         renderArrowAndCalculateTrollPhase(gameController.timeSinceInitCompleted);
 
         glDisable(GL_TEXTURE_2D);
-        glEnable(GL_DEPTH_TEST);
     }
 
 private:
@@ -287,16 +276,15 @@ void display(void) {
     const float speed = 1.0 / 7.0;
     const float stopInterval = 3.0;
     const float accel = speed / stopInterval;
-    const float crawlTime = 32.0;
-    const float gameStartPosition = (crawlTime + stopInterval) * speed - stopInterval * stopInterval * accel / 2.0;
+    const float gameStartPosition = (gameController.crawlTime + stopInterval) * speed - stopInterval * stopInterval * accel / 2.0;
     float globalCameraPosition;
 
-    if (gameController.timeSinceInitCompleted < crawlTime) globalCameraPosition = gameController.timeSinceInitCompleted * speed;
-    else if (gameController.timeSinceInitCompleted < crawlTime + stopInterval)
+    if (gameController.timeSinceInitCompleted < gameController.crawlTime) globalCameraPosition = gameController.timeSinceInitCompleted * speed;
+    else if (gameController.timeSinceInitCompleted < gameController.crawlTime + stopInterval)
         globalCameraPosition =
                 gameController.timeSinceInitCompleted * speed -
-                (gameController.timeSinceInitCompleted - crawlTime) *
-                (gameController.timeSinceInitCompleted - crawlTime) *
+                (gameController.timeSinceInitCompleted - gameController.crawlTime) *
+                (gameController.timeSinceInitCompleted - gameController.crawlTime) *
                 accel / 2.0;
     else globalCameraPosition = gameStartPosition;
 
@@ -320,9 +308,9 @@ void display(void) {
     glEnable(GL_LIGHT0);
     glEnable(GL_LIGHTING);
 
-    crawler.render();
+    //crawler.render();
     interceptor.render();
-    logo.render();
+    //logo.render();
 
     glutSwapBuffers();
 }
@@ -363,6 +351,7 @@ void keyboard(unsigned char key, int x, int y) {
             //if ((gameController.timeSinceInitCompleted >= gameController.timeIntro) && (gameController.timeGameStart < 0.0))
         {
             gameController.timeGameStart = gameController.timeSinceInitCompleted - 1;
+            gameController.timeSkip = gameController.crawlTime + gameController.timeOfTransitionFromIntroEndToUserControl;
         }
             break;
         case 'w':
@@ -396,9 +385,6 @@ void keyboard(unsigned char key, int x, int y) {
 
 
 int main(int argc, char **argv) {
-    NS_TGALOADER::IMAGE image;
-    std::cout << image.LoadTGA("media/xwing/ENGINE.tga");
-    std::cout << " " << image.getWidth() << " " << image.getHeight() << " " << image.getBytesPerPixel() << std:: endl;
     try {
         glutInit(&argc, argv);
         glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);

@@ -78,6 +78,8 @@ public:
     float maxVertices;
 
     void render() {
+
+        glEnable(GL_DEPTH_TEST);
         defaultMaterial = -1;
         for (int i = 0; i < vertexIndices.size(); i++) {
             if (defaultMaterial != materialIndices[i]) {

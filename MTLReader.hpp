@@ -199,7 +199,7 @@ std::vector<Material> loadMaterialsFromFile(const char *fileName) {
             glBindTexture(GL_TEXTURE_2D, material.textID);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, material.textureImage.getWidth(), material.textureImage.getHeight(), 0, GL_RGB,
                          GL_UNSIGNED_BYTE, material.textureImage.getDataForOpenGL());
-            std::cout << material.map_Kd << " " << success << " " << material.textureImage.getWidth() << " " << material.textureImage.getHeight() << std::endl;
+            //std::cout << material.map_Kd << " " << success << " " << material.textureImage.getWidth() << " " << material.textureImage.getHeight() << std::endl;
         } else if (startsWith(workline, "map_refl")) {
             material.map_refl = workline.substr(9);
         } else if (startsWith(workline, "map_bump")) {
