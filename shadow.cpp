@@ -8,7 +8,8 @@
 #include "utility2d3d.hpp"
 #include "GameElement.hpp"
 #include "ImageProcessor.hpp"
-#include "MTLReader.hpp"
+#include "TGALoader.hpp"
+#include "OBJReader.hpp"
 
 using namespace std;
 
@@ -42,7 +43,7 @@ ImageProcessor imageProcessor;
 class Avatar : public GameElement {
 public:
     void init() {
-        spaceShip.read("media/TIEInterceptor.obj");
+        spaceShip.read("media/xwing/x-wing.obj");
     }
 
     void render() {
@@ -53,13 +54,20 @@ public:
     }
 
 private:
-    Mesh spaceShip;
+    OBJReader spaceShip;
 
     void transform() {
         float t = ( gameController.timeSinceInitCompleted < gameController.timeIntro ) ? 0 : gameController.timeSinceInitCompleted -
-                                                                                                 gameController.timeIntro;
-
-        glTranslatef(-0.47, -2.6, 2.0);
+                                                                                             gameController.timeIntro;
+        glPushMatrix();
+        glTranslatef(-1.75,0,0);
+        float matKd[] = {1,0,0,1};
+        glMaterialfv(GL_FRONT, GL_DIFFUSE, matKd);
+        glMaterialfv(GL_FRONT, GL_AMBIENT, matKd);
+        glMaterialfv(GL_FRONT, GL_SPECULAR, matKd);
+        glutSolidCube(0.5);
+        glPopMatrix();
+        glTranslatef(-0.47 + 1.75 * 4, 3.6, 2.0);
 
         float percent;
 
@@ -78,8 +86,10 @@ private:
         }
 
         if (gameController.userControlOn) {
-            glTranslatef(imageProcessor.virtualMouseDeltaX, 0, -imageProcessor.virtualMouseDeltaY);
+            glTranslatef(imageProcessor.virtualMouseDeltaX, -imageProcessor.virtualMouseDeltaZ, -imageProcessor.virtualMouseDeltaY);
         }
+
+        percent = 0.0;
 
         glTranslatef((1.0 - percent) * 0.47, (1.0 - percent) * 0.0, (1.0 - percent) * -2.0);
         glRotatef(percent * fmod(t * 13, 360), 1, 0, 0);
@@ -90,6 +100,8 @@ private:
         glRotatef(-180, 0, 0, 1);
         glRotatef(90, 1, 0, 0);
         glScalef(0.5, 0.5, 0.5);
+        float scale = 1.0/100; //(1 / spaceShip.maxVertices)*8;
+        glScalef(scale, scale, scale);
     }
 } interceptor;
 
@@ -369,6 +381,14 @@ void keyboard(unsigned char key, int x, int y) {
         case 'D':
             if (gameController.userControlOn) imageProcessor.virtualMouseDeltaX += 0.05f;
             break;
+        case 'q':
+        case 'Q':
+            if (gameController.userControlOn) imageProcessor.virtualMouseDeltaZ -= 0.05f;
+            break;
+        case 'e':
+        case 'E':
+            if (gameController.userControlOn) imageProcessor.virtualMouseDeltaZ += 0.05f;
+            break;
         default:
             break;
     }
@@ -376,6 +396,9 @@ void keyboard(unsigned char key, int x, int y) {
 
 
 int main(int argc, char **argv) {
+    NS_TGALOADER::IMAGE image;
+    std::cout << image.LoadTGA("media/xwing/ENGINE.tga");
+    std::cout << " " << image.getWidth() << " " << image.getHeight() << " " << image.getBytesPerPixel() << std:: endl;
     try {
         glutInit(&argc, argv);
         glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
@@ -392,12 +415,7 @@ int main(int argc, char **argv) {
     catch (const char *filename) {
         printf("Can't find %s.\n", filename);
     }
-    /*try {
-        auto materials = loadMaterialsFromFile("media/xwing/x-wing.mtl");
-        for(auto material : materials)
-            std::cout << material << std::endl;
-    } catch (const char *fileName){
-        std::cout << "Can't find " << fileName << std::endl;
-    }*/
+
+
     return 0;
 }
