@@ -34,8 +34,8 @@ public:
         if (!prevCaptured.data) prevCaptured = captured.clone();
         if (!mainAreaCalculator.isInitialized() || !clickAreaCalculator.isInitialized()) {
             clickAreaWidth = (int) (captured.cols * clickAreaWidthRatio);
-            mainAreaCalculator.init(captured, prevCaptured, cv::Range(clickAreaWidth, captured.cols), cv::Range::all());
-            clickAreaCalculator.init(captured, prevCaptured, cv::Range(0, clickAreaWidth), cv::Range::all(), 2000.0);
+            mainAreaCalculator.init(captured, prevCaptured, cv::Range(0, captured.cols - clickAreaWidth), cv::Range::all());
+            clickAreaCalculator.init(captured, prevCaptured, cv::Range(captured.cols - clickAreaWidth, captured.cols), cv::Range::all(), 2000.0);
         }
         mainAreaCalculator.calculateFlow();
         clickAreaCalculator.calculateFlow();
@@ -82,21 +82,21 @@ private:
     }
 
     void drawMainAreaFlow() {
-        static const cv::Point2f mainAreaCenter = cv::Point2f(clickAreaWidth + (captured.cols - clickAreaWidth) / 2, captured.rows / 2);
-        static const cv::Point2f mainAreaLeftTopPoint = cv::Point2f(clickAreaWidth, 0);
+        static const cv::Point2f mainAreaCenter = cv::Point2f((captured.cols - clickAreaWidth) / 2, captured.rows / 2);
+        static const cv::Point2f mainAreaLeftTopPoint = cv::Point2f(0, 0);
         drawBigFlowArrow(mainAreaCalculator.getActualFlow(), mainAreaCenter);
         drawSmallFlowArrows(mainAreaCalculator.getFlowVectors(), mainAreaLeftTopPoint);
     }
 
     void drawSeparatorLine() {
-        cv::line(imageToShow, cv::Point2f(clickAreaWidth, 0), cv::Point2f(clickAreaWidth, imageToShow.rows), cv::Scalar(0, 255, 0), 2,
+        cv::line(imageToShow, cv::Point2f(imageToShow.cols - clickAreaWidth, 0), cv::Point2f(imageToShow.cols - clickAreaWidth, imageToShow.rows), cv::Scalar(0, 255, 0), 2,
                  CV_AA,
                  0);
     }
 
     void drawClickAreaFlow() {
-        static const cv::Point2f clickAreaCenter = cv::Point2f(clickAreaWidth / 2, captured.rows / 2);
-        static const cv::Point2f clickAreaLeftTopPoint = cv::Point2f(0, 0);
+        static const cv::Point2f clickAreaCenter = cv::Point2f(imageToShow.cols - clickAreaWidth + clickAreaWidth / 2, captured.rows / 2);
+        static const cv::Point2f clickAreaLeftTopPoint = cv::Point2f(imageToShow.cols - clickAreaWidth, 0);
         drawBigFlowArrow(clickAreaCalculator.getActualFlow(), clickAreaCenter);
         drawSmallFlowArrows(clickAreaCalculator.getFlowVectors(), clickAreaLeftTopPoint);
     }

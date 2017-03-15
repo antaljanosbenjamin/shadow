@@ -308,9 +308,9 @@ void display(void) {
     glEnable(GL_LIGHT0);
     glEnable(GL_LIGHTING);
 
-    //crawler.render();
+    crawler.render();
     interceptor.render();
-    //logo.render();
+    logo.render();
 
     glutSwapBuffers();
 }

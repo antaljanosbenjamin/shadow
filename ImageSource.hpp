@@ -67,8 +67,7 @@ class WebcamImageSource : public virtual ImageSource {
     bool getImage(cv::Mat &img) {
         cap >> rawImg;
         cv::resize(rawImg, resizedImg, cv::Size(320, 180));
-        cv::flip(resizedImg, resizedAndFlippedImg, 1);
-        cv::cvtColor(resizedAndFlippedImg, resizedAndFlippedGrayscaleImage, CV_BGR2GRAY);
+        cv::cvtColor(resizedImg, resizedAndFlippedGrayscaleImage, CV_BGR2GRAY);
         resizedAndFlippedGrayscaleImage.copyTo(img);
 
         return true;
