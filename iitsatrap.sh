@@ -1,5 +1,5 @@
 #!/bin/bash
-#This script created for Jedi Academy achievement
+#This script created for IIT’s a trap
 tmpFile=`mktemp`
 echo "UEsDBBQACwAIAPF03Egdi1e9/AAAAHEBAAANABwAaWl0c2F0cmFwLnR4dFVUCQADBnByV0lwcld1
 eAsAAQToAwAABOkDAACMdpfxoJSImBYiqKMdW6X9HFUxQzPWrWHu3nhBdczu+nAU0ObXdumkHeg5
